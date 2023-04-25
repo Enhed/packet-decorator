@@ -1,14 +1,26 @@
 {
   "name": "packet-decorator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
+  "homepage": "https://github.com/Enhed/packet-decorator",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Enhed/packet-decorator"
+  },
+  "bugs": {
+    "url": "https://github.com/Enhed/packet-decorator/issues"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=6"
+  },
   "main": "index.js",
   "scripts": {
     "test": "jest",
     "build": "tsc"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sergey Venger",
   "license": "ISC",
   "dependencies": {
     "reflect-metadata": "^0.1.13"
