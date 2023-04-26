@@ -1,6 +1,6 @@
 {
   "name": "packet-decorator",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "",
   "homepage": "https://github.com/Enhed/packet-decorator",
   "repository": {
@@ -21,7 +21,7 @@
   },
   "keywords": [],
   "author": "Sergey Venger",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "reflect-metadata": "^0.1.13"
   },
