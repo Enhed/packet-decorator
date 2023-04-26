@@ -3,7 +3,7 @@ import 'reflect-metadata'
 export interface PacketFieldInfo {
     key: string | symbol
     parser: (buffer: Buffer, index: number, instance: any) => { value: any, offset: number }
-    serializer: (value: any, instance: any) => Buffer
+    serializer: (value: any, instance: any, buffer: Buffer) => Buffer
 }
 
 export class PacketDecorator {
@@ -24,14 +24,13 @@ export class PacketDecorator {
     toBuffer(): Buffer {
         const metadata: PacketFieldInfo[] = Reflect.getMetadata('packet:fields', this.constructor.prototype) || [];
 
-        const buffers: Buffer[] = [];
+        let buffer = Buffer.alloc(0)
         for (const field of metadata) {
             const value = (this as any)[field.key];
-            const buffer = field.serializer(value, this)
-            buffers.push(buffer)
+            buffer = Buffer.concat([buffer, field.serializer(value, this, buffer)])
         }
 
-        return Buffer.concat(buffers);
+        return buffer
     }
 }
 
