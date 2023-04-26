@@ -1,10 +1,9 @@
 import 'reflect-metadata'
 
 export interface PacketFieldInfo {
-    key: string | symbol;
-    parser: (buffer: Buffer, index: number, length: number) => any;
-    serializer: (value: any, buffer: Buffer, index: number, length: number) => void;
-    length: number | ((instance: any) => number);
+    key: string | symbol
+    parser: (buffer: Buffer, index: number, instance: any) => { value: any, offset: number }
+    serializer: (value: any, instance: any) => Buffer
 }
 
 export class PacketDecorator {
@@ -12,11 +11,11 @@ export class PacketDecorator {
         const instance = new this();
         const metadata: PacketFieldInfo[] = Reflect.getMetadata('packet:fields', this.prototype) || [];
 
-        let index = 0;
+        let index = 0
         for (const field of metadata) {
-            const length = typeof field.length === 'function' ? field.length(instance) : field.length;
-            (instance as any)[field.key] = field.parser(buffer, index, length);
-            index += length;
+            const { value, offset } = field.parser(buffer, index, instance)
+            index += offset;
+            (instance as any)[field.key] = value;
         }
 
         return instance;
@@ -28,10 +27,8 @@ export class PacketDecorator {
         const buffers: Buffer[] = [];
         for (const field of metadata) {
             const value = (this as any)[field.key];
-            const length = typeof field.length === 'function' ? field.length(this) : field.length;
-            const fieldBuffer = Buffer.alloc(length);
-            field.serializer(value, fieldBuffer, 0, length);
-            buffers.push(fieldBuffer);
+            const buffer = field.serializer(value, this)
+            buffers.push(buffer)
         }
 
         return Buffer.concat(buffers);
@@ -52,16 +49,30 @@ export function createFieldMetadata(options: Omit<PacketFieldInfo, 'key'>) {
     };
 }
 
-export function BUFFER(length: number | ((instance: any) => number)) {
+export function BUFFER(length: (instance: any) => number) {
     return createFieldMetadata({
-        length: length,
-        parser: (buffer: Buffer, index: number, length: number) => buffer.slice(index, index + length),
-        serializer: (value: Buffer, buffer, index, length) => value.copy(buffer, index, 0, length + index)
+        parser: (buffer, index, instance) => {
+            return {
+                value: buffer.subarray(index, index + length(instance)),
+                offset: length(instance)
+            }
+        },
+
+        serializer: (value: Buffer, instance) => value.subarray(0, length(instance))
     })
 }
 
 export const BYTE = createFieldMetadata({
-    length: 1,
-    parser: (buffer, index) => buffer.readUInt8(index),
-    serializer: (value, buffer, index) => buffer.writeUint8(value, index)
+    parser: (buffer, index) => {
+        return {
+            value: buffer.readUInt8(index),
+            offset: 1
+        }
+    },
+
+    serializer: (value: number) => {
+        const buffer = Buffer.alloc(1)
+        buffer.writeUint8(value)
+        return buffer
+    }
 })

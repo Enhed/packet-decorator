@@ -1,76 +1,65 @@
-# Packet Decorator
+# PacketDecorator Library
 
-Packet Decorator is a TypeScript library that helps you easily create classes for encoding and decoding binary packets. It provides decorators and helper functions to define fields in your classes with specific binary parsing and serialization rules.
+This library provides a simple and efficient way to handle serialization and deserialization of binary packets. It allows you to create custom packet structures with various fields and data types using TypeScript decorators.
 
 ## Features
 
-- Define packet fields with decorators
-- Automatically parse and serialize packet fields from/to binary buffers
-- Customizable field lengths and parsing/serialization rules
-- Supports fixed and dynamic field lengths
+- Easy-to-use decorators for defining custom packet fields
+- Automatic serialization and deserialization of packet data
+- Support for multiple data types, including custom types
+- Built on top of the Reflect Metadata API
+
+## Example Usage
+
+```typescript
+import { PacketDecorator, BYTE, BUFFER } from 'packet-decorator'
+
+class MyPacket extends PacketDecorator {
+    @BYTE
+    public messageType!: number
+
+    @BUFFER(() => 4)
+    public payload!: Buffer
+}
+
+const myPacket = new MyPacket()
+myPacket.messageType = 1
+myPacket.payload = Buffer.from([0x01, 0x02, 0x03, 0x04])
+
+const serialized = myPacket.toBuffer()
+
+const deserializedPacket = MyPacket.fromBuffer(serialized)
+```
 
 ## Installation
 
-Install the library using npm:
+To install the library, you can use your preferred package manager:
 
 ```
-npm install --save packet-decorator
+npm install packet-decorator
 ```
 
-## Usage
+or
 
-Here's an example of how to define a simple packet class with two fields, `id` and `payload`:
-
-```typescript
-import { PacketDecorator, BYTE, BUFFER } from 'packet-decorator';
-
-class MyPacket extends PacketDecorator {
-  @BYTE
-  id: number;
-
-  @BUFFER((instance: MyPacket) => instance.id)
-  payload: Buffer;
-}
+```
+yarn add packet-decorator
 ```
 
-To create a new instance of the packet class and serialize it to a binary buffer:
+## Dependencies
 
-```typescript
-const packet = new MyPacket();
-packet.id = 5;
-packet.payload = Buffer.from('Hello, World!');
-
-const buffer = packet.toBuffer();
-```
-
-To parse a binary buffer and create a new instance of the packet class:
-
-```typescript
-const buffer = Buffer.from([...]);
-const packet = MyPacket.fromBuffer(buffer);
-
-console.log(packet.id); // 5
-console.log(packet.payload.toString()); // 'Hello, World!'
-```
+- `reflect-metadata`: This library uses the Reflect Metadata API, so you need to import 'reflect-metadata' at the top of your entry file.
 
 ## API
 
-### PacketDecorator
+- `PacketDecorator`: Base class for creating custom packet structures.
+- `createFieldMetadata(options: Omit<PacketFieldInfo, 'key'>)`: A utility function for creating custom field metadata decorators.
+- `BUFFER(length: (instance: any) => number)`: A decorator for defining buffer fields with a dynamic length.
+- `BYTE`: A decorator for defining byte (UInt8) fields.
 
-The base class for your packet classes. Extend this class to create a new packet class.
+## Contributing
 
-### createFieldMetadata(options: Omit<PacketFieldInfo, 'key'>)
+If you have any suggestions or improvements, feel free to open an issue or submit a pull request on the project's GitHub repository.
 
-A function to create custom field decorators. Takes an object with the following properties:
+## License
 
-- `length`: The fixed length of the field or a function that returns the length based on the instance.
-- `parser`: A function that takes a buffer, index, and length and returns the parsed value.
-- `serializer`: A function that takes a value, buffer, index, and length and serializes the value into the buffer.
-
-### BUFFER(length: number | ((instance: any) => number))
-
-A decorator for fields with binary buffer values. Takes a fixed length or a function that returns the length based on the instance.
-
-### BYTE
-
-A decorator for fields with 8-bit unsigned integer values. Fixed length of 1 byte.
+This library is released under the MIT License.
